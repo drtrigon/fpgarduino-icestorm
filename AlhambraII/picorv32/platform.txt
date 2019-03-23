@@ -1,0 +1,60 @@
+
+#
+# picorv32 RV32 (risc-v) Core and platform.
+# derived from FPGArduino
+#
+
+name=Alhambra II FPGA Board (picorv32 SoC)
+version=1.0.0
+
+# Compile variables
+# ----------------------
+
+compiler.c.flags=-DHX8KDEMO -march=rv32imc -Wl,-Bstatic,-T,{runtime.platform.path}/variants/generic/sections.lds,--strip-debug -ffreestanding -nostdlib
+
+compiler.path={runtime.platform.path}/tools/riscv32i/bin/
+compiler.c.cmd=riscv32-unknown-elf-gcc
+compiler.cpp.cmd=riscv32-unknown-elf-g++
+compiler.ld.cmd=riscv32-unknown-elf-ld
+compiler.ar.cmd=riscv32-unknown-elf-ar
+compiler.objcopy.cmd=riscv32-elf-objcopy
+compiler.elf2hex.cmd=riscv32-unknown-elf-objcopy
+compiler.size.cmd=riscv32-unknown-elf-size
+
+# Compile patterns
+# ---------------------
+
+## Compile c++ files
+recipe.cpp.o.pattern="{compiler.path}{compiler.c.cmd}" {compiler.c.flags} {includes} {runtime.platform.path}/variants/generic/start.s "{source_file}" -o "{object_file}"
+
+## Link gc-sections, archives, and objects
+recipe.c.combine.pattern=cp "{build.path}/sketch/{build.project_name}.cpp.o" "{build.path}/{build.project_name}.elf"
+
+## Create binary
+recipe.objcopy.eep.pattern="{compiler.path}{compiler.elf2hex.cmd}" -O binary "{build.path}/{build.project_name}.elf" "{build.path}/{build.project_name}.bin"
+
+## Create hex
+recipe.objcopy.hex.pattern="{compiler.path}{compiler.elf2hex.cmd}" -O verilog "{build.path}/{build.project_name}.elf" "{build.path}/{build.project_name}.hex"
+
+## Compute size
+recipe.size.pattern="{compiler.path}{compiler.size.cmd}" -B "{build.path}/{build.project_name}.elf"
+recipe.size.regex=\s*[0-9]+\s+[0-9]+\s+[0-9]+\s+([0-9]+).*
+
+
+# Uploader tools
+# -------------------
+
+#
+# Icestudio/Icestorm uploader tool "iceprog"
+#
+tools.iceprog.path={runtime.platform.path}/tools/iceprog
+#tools.iceprog.path={runtime.platform.path}/../../../../.icestudio/apio/packages/toolchain-icestorm/bin
+tools.iceprog.cmd.path={path}/iceprog
+
+#tools.iceprog.upload.params.verbose=-v
+#tools.iceprog.upload.params.quiet=
+#tools.iceprog.upload.pattern="{cmd.path}" -o 1M "{build.path}/{build.project_name}.bin"
+
+tools.iceprog.program.params.verbose=-v
+tools.iceprog.program.params.quiet=
+tools.iceprog.program.pattern="{cmd.path}" {program.verbose} -o 1M "{build.path}/{build.project_name}.bin"

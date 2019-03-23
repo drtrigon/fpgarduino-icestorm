@@ -1,0 +1,13 @@
+
+#
+# Icestudio/Icestorm Alhambra II Generic picorv32 SoC
+# derived from FPGArduino
+#
+generic.name=Alhambra II Generic picorv32
+generic.build.mcu=picorv32
+generic.build.core=picorv32
+generic.build.board=PICORV32_FPGA_GENERIC
+generic.upload.tool=iceprog
+generic.upload.maximum_size=9999
+generic.upload.wait_for_upload_port=false
+generic.upload.native_usb=false

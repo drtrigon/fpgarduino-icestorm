@@ -1,0 +1,55 @@
+
+1.) unpack (clone) this archive (repo) to ~/sketchbook/hardware/
+
+
+2.) follow https://github.com/cliffordwolf/picorv32#building-a-pure-rv32i-toolchain
+
+# Ubuntu packages needed:
+sudo apt-get install autoconf automake autotools-dev curl libmpc-dev \
+        libmpfr-dev libgmp-dev gawk build-essential bison flex texinfo \
+    gperf libtool patchutils bc zlib1g-dev git libexpat1-dev
+
+sudo mkdir ~/sketchbook/hardware/AlhambraII/picorv32/tools/riscv32i
+sudo chown $USER ~/sketchbook/hardware/AlhambraII/picorv32/tools/riscv32i
+
+git clone https://github.com/riscv/riscv-gnu-toolchain riscv-gnu-toolchain-rv32i
+cd riscv-gnu-toolchain-rv32i
+git checkout c3ad555
+git submodule update --init --recursive
+
+mkdir build; cd build
+../configure --with-arch=rv32i --prefix=~/sketchbook/hardware/AlhambraII/picorv32/tools/riscv32i
+make -j$(nproc)
+
+Now the Arduino IDE replaces the Makefile used before to compile and upload
+the firmware.
+
+This is like uploading a "bootloader" to Arduino/AVR. Uploading a "sketch"
+via bootloader as the Arduino IDE usualy does is done within the FPGArduino
+project e.g.
+
+In Arduino IDE "Tools" pulldown menu, select:
+
+    Board: Alhambra II Generic picorv32
+    Port: (has no effect)
+    Programmer: iceprog (Icestudio/Icestorm)
+
+
+3.) OPTIONAL: use iceprog directly from installed icestudio and its toolchain:
+
+cd ~/sketchbook/hardware/AlhambraII/picorv32/tools/iceprog/
+rm iceprog
+ln -s ~/.icestudio/apio/packages/toolchain-icestorm/bin/iceprog iceprog
+
+or alternatively you can set the following line in platform.txt:
+
+tools.iceprog.path={runtime.platform.path}/../../../../.icestudio/apio/packages/toolchain-icestorm/bin
+
+
+
+Further info:
+https://github.com/riscv/riscv-tools
+https://github.com/riscv/riscv-wiki/wiki/RISC-V-Software-Status
+https://github.com/FPGAwars/Alhambra-II-FPGA/tree/master/examples/picorv32/picosoc
+http://www.nxlab.fer.hr/fpgarduino/
+https://github.com/arduino/Arduino/wiki/Arduino-IDE-1.5-3rd-party-Hardware-specification

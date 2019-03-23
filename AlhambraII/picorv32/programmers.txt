@@ -1,0 +1,4 @@
+iceprog.name=iceprog (Icestudio/Icestorm)
+iceprog.communication=usb
+iceprog.protocol=iceprog
+iceprog.program.tool=iceprog
