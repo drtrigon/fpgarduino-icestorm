@@ -5,7 +5,7 @@ $ cd ~/sketchbook/hardware/
 $ wget https://github.com/drtrigon/fpgarduino-icestorm/archive/master.zip
 $ unzip master.zip
 $ mv fpgarduino-icestorm-master/AlhambraII .
-$ rmdir fpgarduino-icestorm-master
+$ rm -rf fpgarduino-icestorm-master
 
 or clone
 
