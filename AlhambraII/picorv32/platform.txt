@@ -10,11 +10,15 @@ version=1.0.0
 # Compile variables
 # ----------------------
 
-compiler.c.flags=-DHX8KDEMO -march=rv32imc -Wl,-Bstatic,-T,{runtime.platform.path}/variants/generic/sections.lds,--strip-debug -ffreestanding -nostdlib
+# {build.path}/hx8kdemo_sections.lds available after recipe.hooks.linking.prelink.2.pattern has run, needed for recipe.c.combine.pattern only
+compiler.c.flags=-DHX8KDEMO -march=rv32imc -Wl,-Bstatic,-T,{build.path}/hx8kdemo_sections.lds,--strip-debug -ffreestanding -nostdlib
+compiler.cpp.flags=-DHX8KDEMO
+compiler.ar.flags=rcs
 
 compiler.path={runtime.platform.path}/tools/riscv32i/bin/
 compiler.c.cmd=riscv32-unknown-elf-gcc
-compiler.cpp.cmd=riscv32-unknown-elf-g++
+#compiler.cpp.cmd=riscv32-unknown-elf-g++
+compiler.cpp.cmd=riscv32-unknown-elf-cpp
 compiler.ld.cmd=riscv32-unknown-elf-ld
 compiler.ar.cmd=riscv32-unknown-elf-ar
 compiler.objcopy.cmd=riscv32-elf-objcopy
@@ -25,10 +29,25 @@ compiler.size.cmd=riscv32-unknown-elf-size
 # ---------------------
 
 ## Compile c++ files
-recipe.cpp.o.pattern="{compiler.path}{compiler.c.cmd}" {compiler.c.flags} {includes} {runtime.platform.path}/variants/generic/start.s "{source_file}" -o "{object_file}"
+recipe.cpp.o.pattern="{compiler.path}{compiler.c.cmd}" -c {compiler.c.flags} {includes} "{source_file}" -o "{object_file}"
+
+## Compile S files
+recipe.S.o.pattern="{compiler.path}{compiler.c.cmd}" -c {compiler.c.flags} {includes} "{source_file}" -o "{object_file}"
+
+## Create archives
+# archive_file_path is needed for backwards compatibility with IDE 1.6.5 or older, IDE 1.6.6 or newer overrides this value
+archive_file_path={build.path}/{archive_file}
+recipe.ar.pattern="{compiler.path}{compiler.ar.cmd}" {compiler.ar.flags} "{archive_file_path}" "{object_file}"
 
 ## Link gc-sections, archives, and objects
-recipe.c.combine.pattern=cp "{build.path}/sketch/{build.project_name}.cpp.o" "{build.path}/{build.project_name}.elf"
+#recipe.c.combine.pattern=cp "{build.path}/sketch/{build.project_name}.cpp.o" "{build.path}/{build.project_name}.elf"
+#recipe.c.combine.pattern="{compiler.path}{compiler.c.cmd}" {compiler.c.flags} -o "{build.path}/{build.project_name}.elf" {object_files} "{build.path}/{archive_file}"
+# the linker needs start.S as very first item, there are 2 possible work-a-rounds:
+#   1. putting "{build.path}/start.S.o" (or "{build.path}/core/start.S.o") in 2 times (as it is already in the core "{build.path}/{archive_file}") - only works when the core compiles
+#   2. move start.S from .../core to .../variants and compile it using a pre hook and the same command as for "Compile S files" - always compiles start.S but works
+recipe.c.combine.pattern="{compiler.path}{compiler.c.cmd}" {compiler.c.flags} -o "{build.path}/{build.project_name}.elf" "{build.path}/start.S.o" {object_files} "{build.path}/{archive_file}"
+recipe.hooks.linking.prelink.1.pattern = "{compiler.path}{compiler.c.cmd}" -c {compiler.c.flags} "{runtime.platform.path}/variants/generic/start.S" -o "{build.path}/start.S.o"
+recipe.hooks.linking.prelink.2.pattern = "{compiler.path}{compiler.cpp.cmd}" -P {compiler.cpp.flags} -o "{build.path}/hx8kdemo_sections.lds" "{runtime.platform.path}/variants/generic/sections.lds"
 
 ## Create binary
 recipe.objcopy.eep.pattern="{compiler.path}{compiler.elf2hex.cmd}" -O binary "{build.path}/{build.project_name}.elf" "{build.path}/{build.project_name}.bin"

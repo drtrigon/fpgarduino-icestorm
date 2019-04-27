@@ -31,7 +31,7 @@ git checkout c3ad555
 git submodule update --init --recursive
 
 mkdir build; cd build
-../configure --with-arch=rv32i --prefix=~/sketchbook/hardware/AlhambraII/picorv32/tools/riscv32i
+../configure --with-arch=rv32i --prefix=$HOME/sketchbook/hardware/AlhambraII/picorv32/tools/riscv32i
 make -j$(nproc)
 
 Now the Arduino IDE replaces the Makefile used before to compile and upload
@@ -44,8 +44,11 @@ project e.g.
 In Arduino IDE "Tools" pulldown menu, select:
 
     Board: Alhambra II Generic picorv32
-    Port: (has no effect)
+    Port: (of the 2 available it's typically the second one, e.g. /dev/ttyUSB1)
     Programmer: iceprog (Icestudio/Icestorm)
+
+Note: The port needs to be set if using the Serial Montor only. For the programming it has no effect.
+Note: Forgetting to set the correct programmer results in a java error.
 
 
 3.) OPTIONAL: use iceprog directly from installed icestudio and its toolchain:
@@ -59,10 +62,27 @@ or alternatively you can set the following line in platform.txt:
 tools.iceprog.path={runtime.platform.path}/../../../../.icestudio/apio/packages/toolchain-icestorm/bin
 
 
+4.) INFORMATION: The bitstream to use is stored in $HOME/sketchbook/hardware/AlhambraII/picorv32/variants/generic/
+
+The bitstream can be programmed using: $ iceprog hardware.bin
+
+This bitstream was derived from Blink_test-recent-picorv32.tar.gz using icestudio 0.3.3 (linux64.AppImage).
+
+What does work:
+* Verify (building)
+* Upload
+* Serial Monitor using 115200 baud (needs setting the correct port)
+* Arduino IDE examples:
+  * 01.Basics
+    * Blink
+
+
 
 Further info:
 https://github.com/riscv/riscv-tools
 https://github.com/riscv/riscv-wiki/wiki/RISC-V-Software-Status
-https://github.com/FPGAwars/Alhambra-II-FPGA/tree/master/examples/picorv32/picosoc
+https://github.com/FPGAwars/Alhambra-II-FPGA/tree/master/examples/picorv32/picosoc (old, including icestudio project)
+https://github.com/cliffordwolf/picorv32 (recent)
 http://www.nxlab.fer.hr/fpgarduino/
 https://github.com/arduino/Arduino/wiki/Arduino-IDE-1.5-3rd-party-Hardware-specification
+https://github.com/f32c/arduino/issues/32
