@@ -11,12 +11,13 @@ version=1.0.0
 # ----------------------
 
 # {build.path}/hx8kdemo_sections.lds available after recipe.hooks.linking.prelink.2.pattern has run, needed for recipe.c.combine.pattern only
-compiler.c.flags=-DHX8KDEMO -march=rv32imc -Wl,-Bstatic,-T,{build.path}/hx8kdemo_sections.lds,--strip-debug -ffreestanding -nostdlib
+compiler.c.flags=-DHX8KDEMO -march=rv32imc -Wl,-Bstatic,-T,{build.path}/hx8kdemo_sections.lds,--strip-debug -ffreestanding -nostartfiles -fomit-frame-pointer -fno-exceptions -fno-asynchronous-unwind-tables -fno-unwind-tables -fno-rtti
 compiler.cpp.flags=-DHX8KDEMO
 compiler.ar.flags=rcs
 
 compiler.path={runtime.platform.path}/tools/riscv32i/bin/
 compiler.c.cmd=riscv32-unknown-elf-gcc
+#compiler.c.cmd=riscv32-unknown-elf-g++
 #compiler.cpp.cmd=riscv32-unknown-elf-g++
 compiler.cpp.cmd=riscv32-unknown-elf-cpp
 compiler.ld.cmd=riscv32-unknown-elf-ld
@@ -29,7 +30,8 @@ compiler.size.cmd=riscv32-unknown-elf-size
 # ---------------------
 
 ## Compile c++ files
-recipe.cpp.o.pattern="{compiler.path}{compiler.c.cmd}" -c {compiler.c.flags} {includes} "{source_file}" -o "{object_file}"
+recipe.cpp.o.pattern="{compiler.path}{compiler.c.cmd}" -c {compiler.c.flags} {includes} "-I{runtime.platform.path}/variants/AlhambraII/" "{source_file}" -o "{object_file}"
+#recipe.c.o.pattern="{compiler.path}{compiler.c.cmd}" -c {compiler.c.flags} {includes} "-I{runtime.platform.path}/variants/AlhambraII/" "{source_file}" -o "{object_file}"
 
 ## Compile S files
 recipe.S.o.pattern="{compiler.path}{compiler.c.cmd}" -c {compiler.c.flags} {includes} "{source_file}" -o "{object_file}"

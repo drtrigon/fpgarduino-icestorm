@@ -62,19 +62,41 @@ or alternatively you can set the following line in platform.txt:
 tools.iceprog.path={runtime.platform.path}/../../../../.icestudio/apio/packages/toolchain-icestorm/bin
 
 
-4.) INFORMATION: The bitstream to use is stored in $HOME/sketchbook/hardware/AlhambraII/picorv32/variants/generic/
+4.) INFORMATION: The bitstream to use is stored in $HOME/sketchbook/hardware/AlhambraII/picorv32/variants/AlhambraII/
 
 The bitstream can be programmed using: $ iceprog hardware.bin
 
-This bitstream was derived from Blink_test-recent-picorv32.tar.gz using icestudio 0.3.3 (linux64.AppImage).
+This bitstream was derived from GPIO_ADC-recent-picorv32.zip using icestudio 0.3.3 (linux64.AppImage).
 
 What does work:
 * Verify (building)
 * Upload
-* Serial Monitor using 115200 baud (needs setting the correct port)
+* Serial Monitor using any baudrate, default is 115200 (needs setting the correct port)
 * Arduino IDE examples:
   * 01.Basics
-    * Blink
+    * BareMinimum: compiles
+    * Blink: pinMode dummy for leds, digitalWrite on leds also using full 8-bit uint8_t, delay
+    * DigitalReadSerial: Serial.println, Serial.begin all baudrates, pinMode (0-7), digitalRead (0-15)
+    * AnalogReadSerial: analogRead (A0, 4Hz, bits increased from 8 to 10 by multiplying with 4)
+    * ReadAnalogVoltage: (voltage calculation wrong 5.0->3.3)
+    * (TODO: Fade - needs PWM)
+  * 02.Digital
+    * BlinkWithoutDelay: millis, micros, (delay refactored to use micros)
+    * Button: (works after changing ledPin 13->LED_BUILTIN)
+    * Debounce: (works after changing ledPin 13->LED_BUILTIN)
+    * StateChangeDetection: (works after changing ledPin 13->LED_BUILTIN)
+    * (TODO: ...)
+  * 03.Analog
+    * AnalogInput: (works after changing ledPin 13->LED_BUILTIN)
+    * (TODO: ...)
+
+TODO: assert warning on non supported stuff
+TODO: implement/test gpio output/write mode
+
+(TODO: serial input (serial is not expected to work fully, e.g. 'available' funcs etc.))
+(TODO: add travis integration in order to automatically check whether all examples compile and link properly - functional check has to be done manually)
+(TODO: virtual functions around Print(::write) do not work...)
+(TODO: remove "picorv32: work-a-round" and adopt to arduino template where possible)
 
 
 
@@ -86,3 +108,4 @@ https://github.com/cliffordwolf/picorv32 (recent)
 http://www.nxlab.fer.hr/fpgarduino/
 https://github.com/arduino/Arduino/wiki/Arduino-IDE-1.5-3rd-party-Hardware-specification
 https://github.com/f32c/arduino/issues/32
+https://github.com/FPGAwars/icestudio/issues/321

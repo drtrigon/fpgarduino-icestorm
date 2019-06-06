@@ -162,7 +162,7 @@ void print(const char *p)
 		putchar(*(p++));
 }
 
-void print_hex(uint32_t v, int digits)
+/*void print_hex(uint32_t v, int digits)
 {
 	for (int i = 7; i >= 0; i--) {
 		char c = "0123456789abcdef"[(v >> (4*i)) & 15];
@@ -242,31 +242,81 @@ char getchar_prompt(char *prompt)
 char getchar()
 {
 	return getchar_prompt(0);
-}
+}*/
 
 // --------------------------------------------------------
 
-void delay(uint32_t milliseconds)
+unsigned long millis()  // wiring.c
 {
 	uint32_t cycles_begin, cycles_now, cycles;
 	__asm__ volatile ("rdcycle %0" : "=r"(cycles_begin));
-	cycles_now = cycles_begin;
-
-	while ((cycles_now - cycles_begin) < (milliseconds * clk_div_ms))
-		__asm__ volatile ("rdcycle %0" : "=r"(cycles_now));
+	return cycles_begin/clk_div_ms;
 }
 
-void pinMode(uint8_t pin, uint8_t mode)
+unsigned long micros()  // wiring.c
 {
-/*	if (pin == ...) {
-		...
-	}*/
+	uint32_t cycles_begin, cycles_now, cycles;
+	__asm__ volatile ("rdcycle %0" : "=r"(cycles_begin));
+	return cycles_begin/clk_div_us;
 }
 
-void digitalWrite(uint8_t pin, uint8_t value)
+void delay(unsigned long ms)  // wiring.c
+{
+	uint32_t start = micros();
+
+	while (ms > 0) {
+//		yield();  // picorv32: disabled for now (can be enabled/added if needed, see hooks.c)
+		while ( ms > 0 && (micros() - start) >= 1000) {
+			ms--;
+			start += 1000;
+		}
+	}
+}
+
+void pinMode(uint8_t pin, uint8_t mode)  // wiring_digital.c
+{
+	if (pin < 8) {
+		// gpio
+		if (mode == INPUT) {
+			reg_outp = (reg_outp & (~(0x00000001 << (pin+24))));  // set oe/dir bit[pin] to 0 (IOpin input)
+		} else if (mode == OUTPUT) {
+			reg_outp = (reg_outp | (0x00000001 << (pin+24)));     // set oe/dir bit[pin] to 1 (IOpin output)
+//		} else {
+//			// not supported (yet)
+		}
+//	} else {
+//		// not supported (yet)
+	}
+}
+
+void digitalWrite(uint8_t pin, uint8_t value)  // wiring_digital.c
 {
 	if (pin == LED_BUILTIN) {
-		reg_leds = value;
+		reg_outp = (reg_outp & 0xFFFFFF00) | ((uint32_t)value);  // reg_leds
+//	} else {
+//		// not supported (yet)
+	}
+}
+
+int digitalRead(uint8_t pin)  // wiring_digital.c
+{
+	if (pin < 8) {
+		// gpio
+		return (((uint8_t)((reg_inp & 0x00FF0000) >> 16)) >> pin) & 0x01;
+	} else if ((8 <= pin) && (pin < 16)) {
+		// input (fix)
+		return (((uint8_t)((reg_inp & 0x0000FF00) >> 8)) >> (pin-8)) & 0x01;
+//	} else {
+//		// not supported (yet)
+	}
+}
+
+int analogRead(uint8_t pin)  // wiring_analog.c
+{
+	if (pin == A0) {
+		return 4 * ((uint8_t)((reg_inp & 0xFF000000) >> 24));  // read adc0 value from highest 8 input bits (sampled @ 4 Hz)
+//	} else {
+//		// not supported (yet)
 	}
 }
 
@@ -294,20 +344,20 @@ void main()
 	// LED_BUILTIN digital pin already initialized as an output, see FPGA code demo.ice
 
 	// use LEDs as progress bar for startup process
-	reg_leds = 31;
+	reg_outp = (reg_outp & 0xFFFFFF00) | ((uint32_t)31);   // reg_leds
 	reg_uart_clkdiv = 104;
 	print("Booting..");
 	delay(100);
 
-	reg_leds = 63;
+	reg_outp = (reg_outp & 0xFFFFFF00) | ((uint32_t)63);   // reg_leds
 	set_flash_qspi_flag();
 	delay(100);
 
-	reg_leds = 127;
+	reg_outp = (reg_outp & 0xFFFFFF00) | ((uint32_t)127);  // reg_leds
 	print("OK\n");
 	delay(100);
 
-	reg_leds = 0;
+	reg_outp = (reg_outp & 0xFFFFFF00) | ((uint32_t)0);    // reg_leds
 
 	setup();
 
