@@ -4,6 +4,8 @@ This hardware and code was build and tested using icestudio (icestorm) and
 an Alhambra II board. It should work out of the box or be fairly easy to
 adopt to other similar boards (e.g. TinyFPGA, iCEBreaker, etc.).
 
+![gpio_adc_hardware.png](https://raw.githubusercontent.com/drtrigon/fpgarduino-icestorm/master/AlhambraII/picorv32/variants/AlhambraII/gpio_adc_hardware.png)
+
 
 ### 1.) unpack (clone) this archive (repo) to ~/sketchbook/hardware/
 
