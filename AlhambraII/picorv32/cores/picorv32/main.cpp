@@ -19,6 +19,8 @@
 
 #include <Arduino.h>
 
+#include "HardwareSerial_private.h"  // picorv32; work-a-round needed for Serial._rx_complete_irq();
+
 #ifdef ICEBREAKER
 #  define MEM_TOTAL 0x20000 /* 128 KB */
 #elif HX8KDEMO
@@ -291,7 +293,21 @@ void pinMode(uint8_t pin, uint8_t mode)  // wiring_digital.c
 
 void digitalWrite(uint8_t pin, uint8_t value)  // wiring_digital.c
 {
-	if (pin == LED_BUILTIN) {
+	if (pin < 8) {
+		// gpio
+		if (value == LOW) {
+			reg_outp = (reg_outp & (~(0x00000001 << (pin+16))));  // set bit[pin] to 0
+		} else {
+			reg_outp = (reg_outp | (0x00000001 << (pin+16)));     // set bit[pin] to 1
+		}
+	} else if ((8 <= pin) && (pin < 16)) {
+		// output (fix)
+		if (value == LOW) {
+			reg_outp = (reg_outp & (~(0x00000001 << (pin-8+8))));  // set bit[pin] to 0
+		} else {
+			reg_outp = (reg_outp | (0x00000001 << (pin-8+8)));     // set bit[pin] to 1
+		}
+	} else if (pin == LED_BUILTIN) {
 		reg_outp = (reg_outp & 0xFFFFFF00) | ((uint32_t)value);  // reg_leds
 //	} else {
 //		// not supported (yet)
@@ -309,15 +325,24 @@ int digitalRead(uint8_t pin)  // wiring_digital.c
 //	} else {
 //		// not supported (yet)
 	}
+	return 0;
 }
 
 int analogRead(uint8_t pin)  // wiring_analog.c
 {
 	if (pin == A0) {
-		return 4 * ((uint8_t)((reg_inp & 0xFF000000) >> 24));  // read adc0 value from highest 8 input bits (sampled @ 4 Hz)
+		return ((int)((uint8_t)((reg_inp & 0xFF000000) >> 24))) << 2;  // read adc0 value from highest 8 input bits (sampled @ 4 Hz)
 //	} else {
 //		// not supported (yet)
 	}
+	return 0;
+}
+
+void analogWrite(uint8_t pin, int val)  // wiring_analog.c
+{
+//	if (pin < 1) {
+		reg_outp = (reg_outp & 0xFFFF00FF) | (((uint32_t)((uint8_t)val)) << 8);  // PWM0
+//	}
 }
 
 // --------------------------------------------------------
@@ -340,7 +365,10 @@ int analogRead(uint8_t pin)  // wiring_analog.c
 
 // the main function initializes the program
 void main()
+//int main(void)
 {
+	// init
+
 	// LED_BUILTIN digital pin already initialized as an output, see FPGA code demo.ice
 
 	// use LEDs as progress bar for startup process
@@ -362,6 +390,11 @@ void main()
 	setup();
 
 	// the loop function runs over and over again forever
-	while (1)
+	while (1) {
+		Serial._rx_complete_irq();  // picorv32; work-a-round as we do not have in interrupt (yet)
 		loop();
+//		if (serialEventRun) serialEventRun();
+	}
+
+//	return 0;
 }

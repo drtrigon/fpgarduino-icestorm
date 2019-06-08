@@ -166,9 +166,7 @@ void HardwareSerial::end()
 
 int HardwareSerial::available(void)
 {
-  /*return ((unsigned int)(SERIAL_RX_BUFFER_SIZE + _rx_buffer_head - _rx_buffer_tail)) % SERIAL_RX_BUFFER_SIZE;*/
-
-	return 0;
+  return ((unsigned int)(SERIAL_RX_BUFFER_SIZE + _rx_buffer_head - _rx_buffer_tail)) % SERIAL_RX_BUFFER_SIZE;
 }
 
 int HardwareSerial::peek(void)
@@ -184,30 +182,14 @@ int HardwareSerial::peek(void)
 
 int HardwareSerial::read(void)
 {
-  /*// if the head isn't ahead of the tail, we don't have any characters
+  // if the head isn't ahead of the tail, we don't have any characters
   if (_rx_buffer_head == _rx_buffer_tail) {
     return -1;
   } else {
     unsigned char c = _rx_buffer[_rx_buffer_tail];
     _rx_buffer_tail = (rx_buffer_index_t)(_rx_buffer_tail + 1) % SERIAL_RX_BUFFER_SIZE;
     return c;
-  }*/
-
-	int32_t c = -1;
-
-	uint32_t cycles_begin, cycles_now, cycles;
-	__asm__ volatile ("rdcycle %0" : "=r"(cycles_begin));
-
-	while (c == -1) {
-		__asm__ volatile ("rdcycle %0" : "=r"(cycles_now));
-		cycles = cycles_now - cycles_begin;
-		if (cycles > 12000000) {
-			cycles_begin = cycles_now;
-		}
-		c = reg_uart_data;
-	}
-
-	return c;
+  }
 }
 
 int HardwareSerial::availableForWrite(void)

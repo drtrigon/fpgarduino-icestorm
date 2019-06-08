@@ -29,7 +29,7 @@
 #include "Stream.h"*/
 #include "Print.h"  // picorv32: work-a-round; usually included in Stream.h
 
-/*// Define constants and variables for buffering incoming serial data.  We're
+// Define constants and variables for buffering incoming serial data.  We're
 // using a ring buffer (I think), in which head is the index of the location
 // to which to write the next incoming character and tail is the index of the
 // location from which to read.
@@ -40,13 +40,13 @@
 // atomicity guards needed for that are not implemented. This will
 // often work, but occasionally a race condition can occur that makes
 // Serial behave erratically. See https://github.com/arduino/Arduino/issues/2405
-#if !defined(SERIAL_TX_BUFFER_SIZE)
+/*#if !defined(SERIAL_TX_BUFFER_SIZE)
 #if ((RAMEND - RAMSTART) < 1023)
 #define SERIAL_TX_BUFFER_SIZE 16
 #else
 #define SERIAL_TX_BUFFER_SIZE 64
 #endif
-#endif
+#endif*/
 #if !defined(SERIAL_RX_BUFFER_SIZE)
 #if ((RAMEND - RAMSTART) < 1023)
 #define SERIAL_RX_BUFFER_SIZE 16
@@ -54,18 +54,18 @@
 #define SERIAL_RX_BUFFER_SIZE 64
 #endif
 #endif
-#if (SERIAL_TX_BUFFER_SIZE>256)
+/*#if (SERIAL_TX_BUFFER_SIZE>256)
 typedef uint16_t tx_buffer_index_t;
 #else
 typedef uint8_t tx_buffer_index_t;
-#endif
+#endif*/
 #if  (SERIAL_RX_BUFFER_SIZE>256)
 typedef uint16_t rx_buffer_index_t;
 #else
 typedef uint8_t rx_buffer_index_t;
 #endif
 
-// Define config for Serial.begin(baud, config);
+/*// Define config for Serial.begin(baud, config);
 #define SERIAL_5N1 0x00
 #define SERIAL_6N1 0x02
 #define SERIAL_7N1 0x04*/
@@ -94,26 +94,26 @@ typedef uint8_t rx_buffer_index_t;
 class HardwareSerial : public Stream*/
 class HardwareSerial : public Print  // work-a-round; as class Stream : public Print
 {
-  /*protected:
-    volatile uint8_t * const _ubrrh;
+  protected:
+    /*volatile uint8_t * const _ubrrh;
     volatile uint8_t * const _ubrrl;
     volatile uint8_t * const _ucsra;
     volatile uint8_t * const _ucsrb;
     volatile uint8_t * const _ucsrc;
-    volatile uint8_t * const _udr;
+    volatile uint8_t * const _udr;*/
     // Has any byte been written to the UART since begin()
     bool _written;
 
     volatile rx_buffer_index_t _rx_buffer_head;
     volatile rx_buffer_index_t _rx_buffer_tail;
-    volatile tx_buffer_index_t _tx_buffer_head;
-    volatile tx_buffer_index_t _tx_buffer_tail;
+//    volatile tx_buffer_index_t _tx_buffer_head;
+//    volatile tx_buffer_index_t _tx_buffer_tail;
 
     // Don't put any members after these buffers, since only the first
     // 32 bytes of this struct can be accessed quickly using the ldd
     // instruction.
     unsigned char _rx_buffer[SERIAL_RX_BUFFER_SIZE];
-    unsigned char _tx_buffer[SERIAL_TX_BUFFER_SIZE];*/
+//    unsigned char _tx_buffer[SERIAL_TX_BUFFER_SIZE];
 
   public:
     inline HardwareSerial(
@@ -137,9 +137,9 @@ class HardwareSerial : public Print  // work-a-round; as class Stream : public P
     using Print::write; // pull in write(str) and write(buf, size) from Print
     operator bool() { return true; }
 
-    /*// Interrupt handlers - Not intended to be called externally
+    // Interrupt handlers - Not intended to be called externally
     inline void _rx_complete_irq(void);
-    void _tx_udr_empty_irq(void);*/
+    /*void _tx_udr_empty_irq(void);*/
 };
 
 //#if defined(UBRRH) || defined(UBRR0H)

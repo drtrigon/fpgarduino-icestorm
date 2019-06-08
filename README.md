@@ -2,7 +2,8 @@
 
 This hardware and code was build and tested using icestudio (icestorm) and 
 an Alhambra II board. It should work out of the box or be fairly easy to
-adopt to other similar boards (e.g. TinyFPGA, etc.).
+adopt to other similar boards (e.g. TinyFPGA, iCEBreaker, etc.).
+
 
 ### 1.) unpack (clone) this archive (repo) to ~/sketchbook/hardware/
 
@@ -84,7 +85,7 @@ What does work:
     * DigitalReadSerial: Serial.println, Serial.begin all baudrates, pinMode (0-7), digitalRead (0-15)
     * AnalogReadSerial: analogRead (A0, 4Hz, bits increased from 8 to 10 by multiplying with 4)
     * ReadAnalogVoltage: (voltage calculation wrong 5.0->3.3)
-    * (TODO: Fade - needs PWM)
+    * Fade: analogWrite (PWM0 shares pin through OR with LED0, a digitalWrite(LED_BUILTIN, HIGH) "disables" the PWM0 - check hardware - currently pin is ignored as there is only one - also fixed digital output pins are shared and thus disabled or debug when using PWM0)
   * 02.Digital
     * BlinkWithoutDelay: millis, micros, (delay refactored to use micros)
     * Button: (works after changing ledPin 13->LED_BUILTIN)
@@ -94,15 +95,26 @@ What does work:
   * 03.Analog
     * AnalogInput: (works after changing ledPin 13->LED_BUILTIN)
     * Smoothing: (works)
-    * (TODO: AnalogInOutSerial - PWM, Calibration - PWM, Fading)
+    * AnalogInOutSerial: map
+    * Calibration: (works)
+    * Fading: (works)
+    * (AnalogWriteMega could also be implemented)
   * 04.Communication
     * ASCIITable: (works)
     * Graph: (works)
-    * VirtualColorMixer: (works with A0 only, A1 and A2 read garbage)
-    * (TODO: Dimmer - PWM+serialread, PhysicalPixel - serialread, ReadASCIIString - serialread, SerialCallResponse - serialread, SerialCallResponseASCII - serialread, SerialEvent)
+    * VirtualColorMixer: (works with A0 only, A1 and A2 always read 0)
+    * Dimmer: Serial.available, Serial.read, Serial._rx_complete_irq
+    * PhysicalPixel: (works)
+    * SerialCallResponse: (works but the function "establishContact* needs to be declared before "setup" and needs Serial._rx_complete_irq(); within the loop)
+    * SerialCallResponseASCII: (works but the function "establishContact* needs to be declared before "setup" and needs Serial._rx_complete_irq(); within the loop)
+    * (TODO: ReadASCIIString - parseInt from Stream class, SerialEvent)
   * 05.Control
     * IfStatementConditional: (works after changing ledPin 13->LED_BUILTIN)
-    * (TODO: Array - digitalWrite, ForLoopIteration - digitalWrite, switchCase - map, switchCase2 - serialread, WhileStatementConditional - PWM)
+    * switchCase: (works)
+    * WhileStatementConditional: (works after changing indicatorLedPin 13->LED_BUILTIN and buttonPin 2->14, also the function "calibrate" needs to be declared before "loop")
+    * Array: digitalWrite (for gpio and fixed pins)
+    * ForLoopIteration: (works)
+    * switchCase2: (works)
   * 08.Strings
     * (TODO: add support for String class)
   * 11.ArduinoISP
@@ -111,14 +123,13 @@ What does work:
 
 
 ### TODO:
-    TODO: serial, PWM, gpio with pull-up, ArduinoISP example (software bit-bang SPI?)
-    TODO: implement/test gpio output/write mode
-    TODO: assert warning on non supported stuff
+    TODO: gpio with pull-up
 
-    (TODO: serial input (serial is not expected to work fully, e.g. 'available' funcs etc.))
+    (TODO: serial input drops/misses chars when e.g. transmitting "abcde" - not interrupt based)
     (TODO: add travis integration in order to automatically check whether all examples compile and link properly - functional check has to be done manually)
     (TODO: virtual functions around Print(::write) do not work...)
     (TODO: remove "picorv32: work-a-round" and adopt to arduino template where possible)
+    (TODO: assert warning on non supported stuff)
 
 
 ### Further info:

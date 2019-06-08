@@ -98,9 +98,9 @@ HardwareSerial::HardwareSerial(
 
 // Actual interrupt handlers //////////////////////////////////////////////////////////////
 
-/*void HardwareSerial::_rx_complete_irq(void)
+void HardwareSerial::_rx_complete_irq(void)
 {
-  if (bit_is_clear(*_ucsra, UPE0)) {
+  /*if (bit_is_clear(*_ucsra, UPE0)) {
     // No Parity error, read byte and store it in the buffer if there is
     // room
     unsigned char c = *_udr;
@@ -117,7 +117,25 @@ HardwareSerial::HardwareSerial(
   } else {
     // Parity error, read byte but discard it
     *_udr;
-  };
-}*/
+  };*/
+  int32_t c = 0;
+  while(c != -1) {
+    c = reg_uart_data;
+    if (c != -1) {
+      rx_buffer_index_t i = (unsigned int)(_rx_buffer_head + 1) % SERIAL_RX_BUFFER_SIZE;
+
+      // if we should be storing the received character into the location
+      // just before the tail (meaning that the head would advance to the
+      // current location of the tail), we're about to overflow the buffer
+      // and so we don't write the character or advance the head.
+      if (i != _rx_buffer_tail) {
+        _rx_buffer[_rx_buffer_head] = c;
+        _rx_buffer_head = i;
+      }
+    } else {
+      // No data, do nothing
+    }
+  }
+}
 
 #endif // whole file
