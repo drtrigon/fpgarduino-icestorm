@@ -132,8 +132,32 @@ void analogWrite(uint8_t, int);
 unsigned long millis(void);
 unsigned long micros(void);
 void delay(unsigned long);
-/*void delayMicroseconds(unsigned int us);
-unsigned long pulseIn(uint8_t pin, uint8_t state, unsigned long timeout);
+/*inline void delayMicroseconds(unsigned int us)  // picorv32 work-a-round; inline for speedup, still slow
+{
+	// delays below 66 and 113 microseconds are not possible and the resolution
+	// is about 16-21 microseconds. the type and value of us passed may add cycles too.
+#if F_CPU >= 12000000L
+	// numbers here are empiric estimates
+	if (us<=92) return;
+	us /= 16;
+	us -=  4;  // important to have us >= 1 for next step (asm loop)
+	// busy wait (1x is 256 cycles, every further iteration is +197 cycles -> steps of ~16-21 us)
+	__asm__ __volatile__ (
+	  "1: addi %0,%0,-1" "\n\t" // ? cycles
+	  "bnez %0,1b" : "=r" (us) : "r" (us) // ? cycles
+	);
+
+#else
+	#warning "delayMicroseconds supports 12MHz clock only"
+
+
+#endif
+
+	// busy wait
+	// ...
+	return;
+}*/
+/*unsigned long pulseIn(uint8_t pin, uint8_t state, unsigned long timeout);
 unsigned long pulseInLong(uint8_t pin, uint8_t state, unsigned long timeout);
 
 void shiftOut(uint8_t dataPin, uint8_t clockPin, uint8_t bitOrder, uint8_t val);
@@ -141,6 +165,13 @@ uint8_t shiftIn(uint8_t dataPin, uint8_t clockPin, uint8_t bitOrder);
 
 void attachInterrupt(uint8_t, void (*)(void), int mode);
 void detachInterrupt(uint8_t);*/
+
+//#define ASSERT_NOT_IMPLEMENTED  // picorv32 work-a-round
+//#define HALT_ON_ASSERT          // picorv32 work-a-round - strict; not compatible with some examples
+#if defined(ASSERT_NOT_IMPLEMENTED)
+#warning ASSERT_NOT_IMPLEMENTED enabled. Check serial output for assertions. Baudrate is the one choosen or 115200 per default.
+void assert(const bool, const char *);  // picorv32 work-a-round
+#endif
 
 void setup(void);
 void loop(void);

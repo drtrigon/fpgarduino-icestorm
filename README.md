@@ -45,9 +45,14 @@ or clone
 Now the Arduino IDE replaces the Makefile used before to compile and upload
 the firmware.
 
-This is like uploading a "bootloader" to Arduino/AVR. Uploading a "sketch"
-via bootloader as the Arduino IDE usualy does is done within the FPGArduino
-project e.g.
+This DOES NOT use a bootloader, the compiled code is uploaded and executed
+directly. If you want to use a bootloader for uploading consider [9,10,5]
+(and [7] too).
+
+In other words: In the Arduino IDE this is like uploading a "bootloader" to
+Arduino/AVR (does not use a bootloader but ISP e.g.). Uploading a "sketch" as
+the Arduino IDE usualy does (via bootloader) is done within the projects
+referred before (FPGArduino and "Programming the TinyFPGA BX with Arduino").
 
 In Arduino IDE "Tools" pulldown menu, select:
 
@@ -117,29 +122,41 @@ What does work:
     * Array: digitalWrite (for gpio and fixed pins)
     * ForLoopIteration: (works)
     * switchCase2: (works)
-  * 08.Strings
-    * (TODO: add support for String class)
   * 11.ArduinoISP
-    * (TODO: BitBanged/software SPI, USE_OLD_STYLE_WIRING, RESET/PIN_MOSI/PIN_MISO/PIN_SCK/etc. to use gpio (0-7), delayMicroseconds)
-  * (TODO: PJON ???)
+    * (TODO: BitBanged/software SPI, USE_OLD_STYLE_WIRING, RESET/PIN_MOSI/PIN_MISO/PIN_SCK/etc. to use gpio (0-7), needs delayMicroseconds - see comment below ...)
+  * Other Libraries:
+    * SSD1306Ascii: SoftSpi128x64 (compiles, not tested - size big; 157988 - need hardware for testing)
+    * (TODO: PJON ???)
 
 
 ### TODO:
-    TODO: gpio with pull-up
+    TODO: spi with external hardware like oled, etc.
 
+    (TODO: add support for String class)
     (TODO: serial input drops/misses chars when e.g. transmitting "abcde" - not interrupt based)
     (TODO: add travis integration in order to automatically check whether all examples compile and link properly - functional check has to be done manually)
     (TODO: virtual functions around Print(::write) do not work...)
     (TODO: remove "picorv32: work-a-round" and adopt to arduino template where possible)
-    (TODO: assert warning on non supported stuff)
+    (TODO: gpio with switchable/dynamic pull-up only possible with SB_IO_I3C (rare on some pins only)
+          or 2 pins
+          https://stackoverflow.com/questions/56517923/ice40-icestorm-fpga-switchable-pullup-on-bi-directional-io-pins/ )
+    (TODO: code loading and execution way to slow for delayMicroseconds - a single line of assembler
+          code takes around 200 cycles or 16-21 us - reason is slow spi flash as memory - solution is
+          faster memory, "[...] create a cache. Or you can just copy all performance-critical code to 
+          RAM, or execute from a ROM."
+          https://github.com/cliffordwolf/picorv32/issues/126 )
+    (TODO: bitbang I2C w/o using interrupts needs delayMicroseconds - solution add I2C hardware
+          https://github.com/felias-fogg/SlowSoftWire, https://github.com/felias-fogg/SlowSoftI2CMaster )
 
 
 ### Further info:
-* https://github.com/riscv/riscv-tools
-* https://github.com/riscv/riscv-wiki/wiki/RISC-V-Software-Status
-* https://github.com/FPGAwars/Alhambra-II-FPGA/tree/master/examples/picorv32/picosoc (old, including icestudio project)
-* https://github.com/cliffordwolf/picorv32 (recent)
-* http://www.nxlab.fer.hr/fpgarduino/
-* https://github.com/arduino/Arduino/wiki/Arduino-IDE-1.5-3rd-party-Hardware-specification
-* https://github.com/f32c/arduino/issues/32
-* https://github.com/FPGAwars/icestudio/issues/321
+* [1] https://github.com/riscv/riscv-tools
+* [2] https://github.com/riscv/riscv-wiki/wiki/RISC-V-Software-Status
+* [3] https://github.com/FPGAwars/Alhambra-II-FPGA/tree/master/examples/picorv32/picosoc (old, including icestudio project)
+* [4] https://github.com/cliffordwolf/picorv32 (recent)
+* [5] http://www.nxlab.fer.hr/fpgarduino/
+* [6] https://github.com/arduino/Arduino/wiki/Arduino-IDE-1.5-3rd-party-Hardware-specification
+* [7] https://github.com/f32c/arduino/issues/32
+* [8] https://github.com/FPGAwars/icestudio/issues/321
+* [9] https://discourse.tinyfpga.com/t/programming-the-tinyfpga-bx-with-arduino/898
+* [10] https://github.com/emard/prjtrellis-picorv32 (mentioned in [7,9])

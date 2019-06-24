@@ -283,11 +283,15 @@ void pinMode(uint8_t pin, uint8_t mode)  // wiring_digital.c
 			reg_outp = (reg_outp & (~(0x00000001 << (pin+24))));  // set oe/dir bit[pin] to 0 (IOpin input)
 		} else if (mode == OUTPUT) {
 			reg_outp = (reg_outp | (0x00000001 << (pin+24)));     // set oe/dir bit[pin] to 1 (IOpin output)
-//		} else {
-//			// not supported (yet)
+#ifdef ASSERT_NOT_IMPLEMENTED
+		} else {
+			assert(true, "pinMode supports mode INPUT, OUTPUT only");  // not supported (yet)
+#endif
 		}
-//	} else {
-//		// not supported (yet)
+#ifdef ASSERT_NOT_IMPLEMENTED
+	} else {
+		assert(true, "pinMode supports pin 0..7 only");  // not supported (yet)
+#endif
 	}
 }
 
@@ -309,8 +313,10 @@ void digitalWrite(uint8_t pin, uint8_t value)  // wiring_digital.c
 		}
 	} else if (pin == LED_BUILTIN) {
 		reg_outp = (reg_outp & 0xFFFFFF00) | ((uint32_t)value);  // reg_leds
-//	} else {
-//		// not supported (yet)
+#ifdef ASSERT_NOT_IMPLEMENTED
+	} else {
+		assert(true, "digitalWrite supports pin 0..15, LED_BUILTIN only");  // not supported (yet)
+#endif
 	}
 }
 
@@ -322,8 +328,10 @@ int digitalRead(uint8_t pin)  // wiring_digital.c
 	} else if ((8 <= pin) && (pin < 16)) {
 		// input (fix)
 		return (((uint8_t)((reg_inp & 0x0000FF00) >> 8)) >> (pin-8)) & 0x01;
-//	} else {
-//		// not supported (yet)
+#ifdef ASSERT_NOT_IMPLEMENTED
+	} else {
+		assert(true, "digitalRead supports pin 0..15 only");  // not supported (yet)
+#endif
 	}
 	return 0;
 }
@@ -332,18 +340,38 @@ int analogRead(uint8_t pin)  // wiring_analog.c
 {
 	if (pin == A0) {
 		return ((int)((uint8_t)((reg_inp & 0xFF000000) >> 24))) << 2;  // read adc0 value from highest 8 input bits (sampled @ 4 Hz)
-//	} else {
-//		// not supported (yet)
+#ifdef ASSERT_NOT_IMPLEMENTED
+	} else {
+		assert(true, "analogRead supports pin A0 only");  // not supported (yet)
+#endif
 	}
 	return 0;
 }
 
 void analogWrite(uint8_t pin, int val)  // wiring_analog.c
 {
+#ifdef ASSERT_NOT_IMPLEMENTED
+	assert(false, "analogWrite supports PWM0 only and ignores the pin variable");  // not supported (yet)
+#endif
 //	if (pin < 1) {
 		reg_outp = (reg_outp & 0xFFFF00FF) | (((uint32_t)((uint8_t)val)) << 8);  // PWM0
 //	}
 }
+
+#if defined(ASSERT_NOT_IMPLEMENTED)
+void assert(const bool stop, const char *p)  // picorv32 work-a-round
+{
+	print("\nassert(): ");
+	print(p);
+	print("\n");
+#ifdef HALT_ON_ASSERT
+	if (stop) {
+		print("execution stopped.\n");
+		while (1);  // may be also flash led as error indicator?
+	}
+#endif
+}
+#endif
 
 // --------------------------------------------------------
 /*
