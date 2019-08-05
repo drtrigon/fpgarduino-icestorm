@@ -125,7 +125,7 @@ What does work:
   * 11.ArduinoISP
     * (TODO: BitBanged/software SPI, USE_OLD_STYLE_WIRING, RESET/PIN_MOSI/PIN_MISO/PIN_SCK/etc. to use gpio (0-7), needs delayMicroseconds - see comment below ...)
   * Other Libraries:
-    * SSD1306Ascii: SoftSpi128x64 (compiles, not tested - size big; 157988 - need hardware for testing)
+    * (TODO: SSD1306Ascii SoftSpi128x64 compiles with huge size of 157988 bytes and does not work yet - it should be fairly simple to make it work - should have a proper Print class definition)
     * (TODO: PJON ???)
 
 
@@ -135,7 +135,7 @@ What does work:
     (TODO: add support for String class)
     (TODO: serial input drops/misses chars when e.g. transmitting "abcde" - not interrupt based)
     (TODO: add travis integration in order to automatically check whether all examples compile and link properly - functional check has to be done manually)
-    (TODO: virtual functions around Print(::write) do not work...)
+    (TODO: virtual functions around Print(::write) do not work... - used by Serial, oled, LiquidCrystal, etc.)
     (TODO: remove "picorv32: work-a-round" and adopt to arduino template where possible)
     (TODO: gpio with switchable/dynamic pull-up only possible with SB_IO_I3C (rare on some pins only)
           or 2 pins
@@ -144,9 +144,11 @@ What does work:
           code takes around 200 cycles or 16-21 us - reason is slow spi flash as memory - solution is
           faster memory, "[...] create a cache. Or you can just copy all performance-critical code to 
           RAM, or execute from a ROM."
-          https://github.com/cliffordwolf/picorv32/issues/126 )
+          https://github.com/cliffordwolf/picorv32/issues/126
+          http://papilio.cc/index.php?n=Playground.Bootstrap )
     (TODO: bitbang I2C w/o using interrupts needs delayMicroseconds - solution add I2C hardware
           https://github.com/felias-fogg/SlowSoftWire, https://github.com/felias-fogg/SlowSoftI2CMaster )
+    (TODO: LiquidCrystal library also needs delayMicroseconds)
 
 
 ### Further info:
